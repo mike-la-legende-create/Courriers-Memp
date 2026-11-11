@@ -1,0 +1,1133 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portail MEMP - MEMP-BENIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --bleu: #0a3d62;
+        --jaune: #f9ca24;
+        --vert: #079992;
+        --rouge: #e55039;
+        --gris-clair: #f8fafc;
+        --bordure: #e2e8f0;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      body {
+        background: var(--gris-clair);
+        color: #334155;
+        line-height: 1.5;
+      }
+
+      /* En-tête moderne */
+      .top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(135deg, var(--bleu), #1e3799);
+        color: white;
+        padding: 15px 5%;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      .top-bar-brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .top-bar img {
+        width: 50px;
+        height: auto;
+      }
+      .top-bar h1 {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .top-bar p {
+        font-size: 12px;
+        opacity: 0.9;
+      }
+      nav {
+        background: var(--jaune);
+        color: #1e293b;
+        padding: 8px 5%;
+        text-align: right;
+        font-weight: 600;
+        font-size: 12px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Grille des espaces */
+      .espace-grid {
+        padding: 30px 5%;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .espace-grid h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: var(--bleu);
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+      }
+      .card {
+        background: white;
+        padding: 25px 20px;
+        border-radius: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: var(--bleu);
+        box-shadow:
+          0 10px 15px -3px rgba(0, 0, 0, 0.05),
+          0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        border-top: 5px solid var(--vert);
+        position: relative;
+        overflow: hidden;
+      }
+      .card span {
+        font-size: 40px;
+        display: block;
+        margin-bottom: 10px;
+        transition: transform 0.3s;
+      }
+      .card h3 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 8px 0 4px;
+      }
+      .card p {
+        font-size: 12px;
+        color: #64748b;
+      }
+      .card:hover {
+        transform: translateY(-6px);
+        box-shadow:
+          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      }
+      .card:hover span {
+        transform: scale(1.1);
+      }
+      .card.directeur {
+        border-top-color: var(--rouge);
+      }
+      .card.ministere {
+        border-top-color: var(--jaune);
+        background: linear-gradient(135deg, #ffffff, #fffdf5);
+      }
+
+      footer {
+        background: var(--bleu);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        font-size: 12px;
+        margin-top: 40px;
+      }
+
+      /* Modales modernes */
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99;
+        padding: 15px;
+        animation: fadeIn 0.2s ease-out;
+      }
+      .modal.hidden {
+        display: none;
+      }
+      .modal-content {
+        background: white;
+        width: 100%;
+        max-width: 900px;
+        border-radius: 20px;
+        padding: 30px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+      .modal-content.large {
+        max-width: 1100px;
+      }
+      .close {
+        float: right;
+        font-size: 28px;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: color 0.2s;
+      }
+      .close:hover {
+        color: var(--rouge);
+      }
+
+      /* Formulaires et éléments */
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+      @media (max-width: 768px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+      label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--bleu);
+        display: block;
+        margin-bottom: 6px;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1px solid var(--bordure);
+        border-radius: 10px;
+        font-size: 13px;
+        background: #f8fafc;
+        transition: all 0.2s;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--vert);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(7, 153, 146, 0.15);
+      }
+      textarea {
+        min-height: 90px;
+      }
+
+      /* Boutons modernes */
+      .btn-principal {
+        width: 100%;
+        background: var(--bleu);
+        color: white;
+        padding: 13px;
+        border: none;
+        border-radius: 10px;
+        margin-top: 15px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+      }
+      .btn-principal:hover {
+        background: #1e3799;
+      }
+      .btn-principal:active {
+        transform: scale(0.98);
+      }
+      .btn-small {
+        background: var(--bleu);
+        color: white;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+      .btn-small:hover {
+        opacity: 0.9;
+      }
+      .btn-constit {
+        background: var(--vert);
+        color: white;
+        padding: 14px 24px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 15px;
+        width: 100%;
+        margin-top: 20px;
+        box-shadow: 0 4px 12px rgba(7, 153, 146, 0.3);
+        transition: all 0.2s;
+      }
+      .btn-constit:hover {
+        background: #066a65;
+        transform: translateY(-2px);
+      }
+
+      .form-section {
+        border: 1px solid var(--bordure);
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background: #fcfdff;
+      }
+      .form-section h3 {
+        font-size: 14px;
+        color: var(--bleu);
+        margin-bottom: 15px;
+        border-bottom: 2px solid var(--jaune);
+        padding-bottom: 8px;
+        font-weight: 700;
+      }
+      .demande-card {
+        border: 1px solid var(--bordure);
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        background: white;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        transition: box-shadow 0.2s;
+      }
+      .demande-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .upload-box {
+        border: 2px dashed #cbd5e1;
+        padding: 20px;
+        text-align: center;
+        border-radius: 12px;
+        background: white;
+      }
+      .info {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 12px;
+        text-align: center;
+      }
+
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .page-header {
+        background: var(--bleu);
+        color: white;
+        padding: 18px 5%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      .check-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 12px;
+        margin: 20px 0;
+      }
+      .check-item {
+        background: white;
+        padding: 14px;
+        border-radius: 10px;
+        border: 1px solid var(--bordure);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+      .check-item:hover {
+        border-color: var(--vert);
+      }
+      .check-item input {
+        width: auto;
+        cursor: pointer;
+      }
+
+      .cachet-box {
+        border: 2px dashed var(--vert);
+        padding: 12px;
+        margin-top: 10px;
+        background: #f0fff4;
+        font-size: 12px;
+        text-align: center;
+        border-radius: 8px;
+        color: var(--vert);
+        font-weight: 700;
+      }
+      .remarque-box {
+        background: #fffbeb;
+        border: 1px solid #fde047;
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 12px;
+        font-size: 13px;
+        color: #854d0e;
+        font-weight: 600;
+      }
+      .box-renvoi {
+        background: #fffbeb;
+        border: 1px solid #fde047;
+        padding: 14px;
+        border-radius: 10px;
+        margin-top: 12px;
+        width: 100%;
+      }
+      .dossier-card {
+        background: white;
+        border: 2px solid var(--bordure);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .dossier-card:hover {
+        border-color: var(--vert);
+        box-shadow: 0 10px 20px -5px rgba(7, 153, 146, 0.15);
+      }
+
+      .page-container {
+        width: 100%;
+        max-width: 210mm;
+        min-height: 297mm;
+        padding: 15mm;
+        margin: 20px auto;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 15px 35px rgba(10, 61, 98, 0.1);
+        position: relative;
+        box-sizing: border-box;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 13.5px;
+        color: #111;
+        border: 1px solid var(--bordure);
+      }
+      .piece-title-banner {
+        background: linear-gradient(135deg, var(--bleu), #1e3799);
+        color: white;
+        text-align: center;
+        padding: 12px;
+        font-size: 15px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .piece-container input[type="text"],
+      .piece-container input[type="date"],
+      .piece-container input[type="file"],
+      .piece-container select {
+        border-bottom: 2px dotted var(--vert);
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        background: #f8fafc;
+        outline: none;
+        padding: 4px 8px;
+        font-family: inherit;
+        color: #0f172a;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
+      .piece-container input:focus {
+        background-color: #f0fdf4;
+        border-bottom: 2px solid var(--vert);
+        box-shadow: 0 2px 5px rgba(7, 153, 146, 0.1);
+      }
+
+      /* Optimisations Mobile */
+      @media (max-width: 768px) {
+        .top-bar {
+          padding: 12px 4%;
+          flex-direction: column;
+          text-align: center;
+        }
+        .top-bar-brand {
+          flex-direction: column;
+          gap: 8px;
+        }
+        nav {
+          text-align: center;
+          font-size: 11px;
+        }
+        .espace-grid {
+          padding: 20px 4%;
+        }
+        .modal-content {
+          padding: 20px;
+          max-height: 95vh;
+        }
+        .page-header {
+          padding: 15px 4%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="page-accueil" class="page active">
+      <header>
+        <div class="top-bar">
+          <div class="top-bar-brand">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/0/0a/Coat_of_arms_of_Benin.svg"
+              alt="Armoiries du Bénin"
+            />
+            <div>
+              <h1>MINISTÈRE DES ENSEIGNEMENTS MATERNEL ET PRIMAIRE</h1>
+              <p>Courrier MEMP</p>
+            </div>
+          </div>
+        </div>
+        <nav><span id="date-heure"></span> | MEMP-BENIN 2026-2027</nav>
+      </header>
+      <main>
+        <section class="espace-grid">
+          <h2>ACCÈS AUX ESPACES</h2>
+          <div class="grid">
+            <a href="#" class="card" id="btn-collab"
+              ><span>👥</span>
+              <h3>ESPACE COLLABORATEURS</h3>
+              <p>Adjoints</p>
+              <p
+                id="info-cnx-collab"
+                style="
+                  font-size: 10px;
+                  color: #64748b;
+                  margin-top: 6px;
+                  font-weight: 600;
+                "
+              >
+                Dernière cnx : -
+              </p></a
+            >
+            <a href="#" class="card directeur" id="btn-directeur"
+              ><span>🏫</span>
+              <h3>ESPACE DIRECTEUR</h3>
+              <p>Directeurs d'écoles</p>
+              <p
+                id="info-cnx-directeur"
+                style="
+                  font-size: 10px;
+                  color: #64748b;
+                  margin-top: 6px;
+                  font-weight: 600;
+                "
+              >
+                Dernière cnx : -
+              </p></a
+            >
+            <a href="#" class="card" id="btn-up"
+              ><span>📚</span>
+              <h3>ESPACE UP</h3>
+              <p>Unités Pédagogiques</p>
+              <p
+                id="info-cnx-up"
+                style="
+                  font-size: 10px;
+                  color: #64748b;
+                  margin-top: 6px;
+                  font-weight: 600;
+                "
+              >
+                Dernière cnx : -
+              </p></a
+            >
+            <a href="#" class="card" id="btn-cp"
+              ><span>🎓</span>
+              <h3>ESPACE CP</h3>
+              <p>Conseillers Pédagogiques</p>
+              <p
+                id="info-cnx-cp"
+                style="
+                  font-size: 10px;
+                  color: #64748b;
+                  margin-top: 6px;
+                  font-weight: 600;
+                "
+              >
+                Dernière cnx : -
+              </p></a
+            >
+            <a href="#" class="card" id="btn-ccs"
+              ><span>📋</span>
+              <h3>ESPACE C/CS</h3>
+              <p>Chefs de Circonscription</p>
+              <p
+                id="info-cnx-ccs"
+                style="
+                  font-size: 10px;
+                  color: #64748b;
+                  margin-top: 6px;
+                  font-weight: 600;
+                "
+              >
+                Dernière cnx : -
+              </p></a
+            >
+            <a href="#" class="card" id="btn-ddemp"
+              ><span>🏛️</span>
+              <h3>ESPACE DDEMP</h3>
+              <p>Direction Départementale</p>
+              <p
+                id="info-cnx-ddemp"
+                style="
+                  font-size: 10px;
+                  color: #64748b;
+                  margin-top: 6px;
+                  font-weight: 600;
+                "
+              >
+                Dernière cnx : -
+              </p></a
+            >
+            <a href="#" class="card ministere" id="btn-ministere"
+              ><span>🇧🇯</span>
+              <h3>ESPACE MINISTÈRE</h3>
+              <p>Niveau Central</p>
+              <p
+                id="info-cnx-ministere"
+                style="
+                  font-size: 10px;
+                  color: #64748b;
+                  margin-top: 6px;
+                  font-weight: 600;
+                "
+              >
+                Dernière cnx : -
+              </p></a
+            >
+          </div>
+        </section>
+      </main>
+      <footer>
+        <p>
+          &copy; 2026 MEMP Bénin - Plateforme sécurisée de gestion des courriers
+        </p>
+      </footer>
+    </div>
+
+    <!-- PAGE UNIVERSELLE ESPACE UTILISATEUR -->
+    <div id="page-mon-espace" class="page">
+      <div class="page-header">
+        <div>
+          <b id="titre-espace-nom">👥 MON ESPACE</b> |
+          <span id="collab-nom"></span> - <span id="collab-ecole"></span>
+          <br /><small
+            id="collab-derniere-connexion"
+            style="opacity: 0.9; font-size: 11px"
+          ></small>
+        </div>
+        <div
+          style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"
+        >
+          <button
+            id="btn-modifier-identifiants-ministere"
+            onclick="ouvrirModalModificationMinistere()"
+            class="btn-small"
+            style="background: var(--rouge); display: none"
+          >
+            ⚙️ Modifier mes accès
+          </button>
+          <button
+            id="btn-ouvrir-courriers"
+            onclick="ouvrirBoiteCourriersPleinEcran()"
+            class="btn-small"
+            style="background: var(--vert)"
+          >
+            📥 Boîte & Historique
+          </button>
+          <button
+            id="btn-ouvrir-bibliotheque"
+            onclick="ouvrirBibliothequePleinEcran()"
+            class="btn-small"
+            style="background: #1e3799"
+          >
+            📚 Bibliothèque
+          </button>
+          <button
+            id="btn-liste-enseignants-ccs"
+            onclick="ouvrirListeEnseignantsCCS()"
+            class="btn-small"
+            style="background: #1e3799; display: none"
+          >
+            📋 Enseignants
+          </button>
+          <button
+            onclick="retourAccueil()"
+            class="btn-small"
+            style="background: var(--jaune); color: #1e293b"
+          >
+            ⬅ Accueil
+          </button>
+          <button
+            onclick="deconnexion()"
+            class="btn-small"
+            style="background: var(--rouge)"
+          >
+            Déconnexion
+          </button>
+        </div>
+      </div>
+      <div style="padding: 30px 5%">
+        <div
+          style="
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+          "
+        >
+          <h2
+            style="
+              color: var(--bleu);
+              text-align: center;
+              font-size: 18px;
+              margin-bottom: 8px;
+            "
+          >
+            📂 CONSTITUER MON DOSSIER / COURRIER
+          </h2>
+          <p
+            style="
+              text-align: center;
+              font-size: 13px;
+              margin: 10px 0 20px;
+              color: #64748b;
+            "
+          >
+            Sélectionnez les pièces administratives officielles et pièces
+            justificatives à envoyer au destinataire hiérarchique :
+          </p>
+          <div class="check-grid" id="container-checkboxes-pieces"></div>
+          <button class="btn-constit" onclick="constituerDossier()">
+            ✅ Constituer mon dossier avec les pièces cochées
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-dossier" class="page">
+      <div class="page-header">
+        <div>
+          <b>📂 MON DOSSIER - Formulaires officiels</b> |
+          <span id="dossier-nom"></span>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button onclick="allerPage('page-mon-espace')" class="btn-small">
+            ⬅ Modifier choix
+          </button>
+          <button
+            onclick="allerPage('page-accueil')"
+            class="btn-small"
+            style="background: var(--jaune); color: #1e293b"
+          >
+            Accueil
+          </button>
+        </div>
+      </div>
+      <div style="padding: 20px 5%" id="contenu-dossier"></div>
+    </div>
+
+    <!-- PAGE PLEIN ÉCRAN : CONSULTATION DE PIÈCE REÇUE -->
+    <div id="page-visualisation-piece" class="page">
+      <div class="page-header">
+        <div>
+          <b>📄 CONSULTATION DU COURRIER REÇU EN PLEIN ÉCRAN</b> |
+          <span id="visu-titre-piece"></span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center">
+          <button
+            onclick="ouvrirBoiteCourriersPleinEcran()"
+            class="btn-small"
+            style="background: var(--vert)"
+          >
+            ⬅ Retour Boîte
+          </button>
+          <button
+            onclick="retourAccueil()"
+            class="btn-small"
+            style="background: var(--jaune); color: #1e293b"
+          >
+            ⬅ Accueil
+          </button>
+        </div>
+      </div>
+      <div
+        style="padding: 20px 5%; background: #eef2f7"
+        id="contenu-visualisation-piece"
+      ></div>
+    </div>
+
+    <!-- PAGE PLEIN ÉCRAN : BOITE COURRIERS -->
+    <div id="page-boite-courriers-plein-ecran" class="page">
+      <div class="page-header">
+        <div>
+          <b id="titre-boite-plein-ecran">📥 BOÎTE DE RÉCEPTION & HISTORIQUE</b>
+          | <span id="boite-user-nom"></span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center">
+          <button
+            onclick="allerPage('page-mon-espace')"
+            class="btn-small"
+            style="background: var(--vert)"
+          >
+            ⬅ Mon Espace
+          </button>
+          <button
+            onclick="retourAccueil()"
+            class="btn-small"
+            style="background: var(--jaune); color: #1e293b"
+          >
+            ⬅ Accueil
+          </button>
+        </div>
+      </div>
+      <div style="padding: 30px 5%">
+        <div
+          style="
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+          "
+        >
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 20px">
+            Cliquez sur un courrier reçu pour l'ouvrir en plein écran et le
+            consulter distinctement.
+          </p>
+          <div id="contenu-boite-courriers-plein-ecran"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE PLEIN ÉCRAN : BIBLIOTHÈQUE -->
+    <div id="page-bibliotheque-plein-ecran" class="page">
+      <div class="page-header">
+        <div>
+          <b>📚 BIBLIOTHÈQUE DES DOSSIERS ARCHIVÉS</b> |
+          <span id="biblio-user-nom"></span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center">
+          <button
+            onclick="allerPage('page-mon-espace')"
+            class="btn-small"
+            style="background: var(--vert)"
+          >
+            ⬅ Mon Espace
+          </button>
+          <button
+            onclick="retourAccueil()"
+            class="btn-small"
+            style="background: var(--jaune); color: #1e293b"
+          >
+            ⬅ Accueil
+          </button>
+        </div>
+      </div>
+      <div style="padding: 30px 5%">
+        <div
+          style="
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+          "
+        >
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 20px">
+            Cliquez sur un dossier personnel ou sur son bouton pour afficher ou
+            masquer les pièces archivées.
+          </p>
+          <div id="contenu-bibliotheque-plein-ecran"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL LISTE DES ENSEIGNANTS -->
+    <div id="modal-liste-enseignants" class="modal hidden">
+      <div class="modal-content large">
+        <span class="close" onclick="fermer('modal-liste-enseignants')"
+          >&times;</span
+        >
+        <h2
+          id="titre-modal-liste-enseignants"
+          style="
+            color: var(--bleu);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--jaune);
+            padding-bottom: 8px;
+          "
+        >
+          📋 Liste des enseignants
+        </h2>
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 15px">
+          Liste de tous les enseignants (collaborateurs adjoints et directeurs
+          d'écoles) inscrits dans votre Circonscription Scolaire.
+        </p>
+        <div id="contenu-liste-enseignants"></div>
+      </div>
+    </div>
+
+    <!-- MODAL MODIFICATION ACCÈS MINISTÈRE -->
+    <div id="modal-modif-ministere" class="modal hidden">
+      <div class="modal-content">
+        <span class="close" onclick="fermer('modal-modif-ministere')"
+          >&times;</span
+        >
+        <h2
+          style="
+            color: var(--bleu);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--jaune);
+            padding-bottom: 8px;
+          "
+        >
+          ⚙️ Modifier les identifiants du Ministère
+        </h2>
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 15px">
+          Mettez à jour l'adresse e-mail et le mot de passe de connexion du
+          compte Ministère.
+        </p>
+        <form id="form-modif-ministere">
+          <div class="row">
+            <div>
+              <label>Nouvelle Adresse E-mail *</label
+              ><input
+                type="email"
+                id="nouveau-email-min"
+                required
+                autocomplete="username"
+              />
+            </div>
+            <div>
+              <label>Nouveau Mot de passe *</label
+              ><input
+                type="password"
+                id="nouveau-pass-min"
+                required
+                autocomplete="new-password"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="btn-principal"
+            style="background: var(--vert)"
+          >
+            Enregistrer les modifications
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL INSCRIPTION -->
+    <div id="modal-inscription" class="modal hidden">
+      <div class="modal-content">
+        <span class="close" onclick="fermer('modal-inscription')">&times;</span>
+        <h2 id="titre-modal-ins">📝 S'inscrire - 1ère fois</h2>
+        <p style="font-size: 12px; color: #64748b; margin: 10px 0">
+          Première connexion ? Remplissez ce formulaire sécurisé.
+        </p>
+        <form id="form-inscription">
+          <div class="row" id="row-dept-commune">
+            <div id="group-dept">
+              <label>Département *</label
+              ><select id="dept" required></select>
+            </div>
+            <div id="group-commune">
+              <label>Commune *</label
+              ><select id="commune" required>
+                <option value="">Choisir le département d'abord</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" id="row-cs-zone">
+            <div id="group-cs">
+              <label>CS *</label
+              ><select id="cs" required>
+                <option value="">Choisir la commune d'abord</option>
+              </select>
+            </div>
+            <div id="group-zone">
+              <label>Zone (1 à 4) *</label
+              ><select id="zone">
+                <option value="">-- Choisir la zone --</option>
+                <option value="1">Zone 1</option>
+                <option value="2">Zone 2</option>
+                <option value="3">Zone 3</option>
+                <option value="4">Zone 4</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" id="row-ecole-matricule">
+            <div id="group-ecole">
+              <label>Entité / École *</label><input type="text" id="ecole" />
+            </div>
+            <div>
+              <label>Matricule *</label
+              ><input type="text" id="matricule" required autocomplete="off" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Nom *</label
+              ><input
+                type="text"
+                id="nom"
+                required
+                autocomplete="family-name"
+              />
+            </div>
+            <div>
+              <label>Prénom *</label
+              ><input
+                type="text"
+                id="prenom"
+                required
+                autocomplete="given-name"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>E-mail *</label
+              ><input type="email" id="email" required autocomplete="email" />
+            </div>
+            <div>
+              <label>Contact téléphonique *</label
+              ><input
+                type="text"
+                id="contact"
+                required
+                placeholder="+229 ..."
+                autocomplete="tel"
+              />
+            </div>
+          </div>
+          <div class="row" style="margin-top: 10px">
+            <div>
+              <label>Mot de passe *</label
+              ><input
+                type="password"
+                id="password"
+                required
+                autocomplete="new-password"
+              />
+            </div>
+            <div id="group-signature-import" style="display: none">
+              <label>✍️ Importer ma signature</label
+              ><input type="file" id="signature-file" accept="image/*" />
+            </div>
+          </div>
+          <button type="submit" class="btn-principal" id="btn-soumettre-ins">
+            Envoyer au supérieur hiérarchique
+          </button>
+          <p class="info">
+            Déjà inscrit ?
+            <a
+              href="#"
+              onclick="
+                fermer('modal-inscription');
+                document
+                  .getElementById('modal-connexion')
+                  .classList.remove('hidden');
+                return false;
+              "
+              style="color: var(--vert); font-weight: 600"
+              >Se connecter</a
+            ><br />Demande envoyée à
+            <b id="info-ecole">l'autorité compétente</b>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL CONNEXION -->
+    <div id="modal-connexion" class="modal hidden">
+      <div class="modal-content">
+        <span class="close" onclick="fermer('modal-connexion')">&times;</span>
+        <h2>🔐 Se connecter</h2>
+        <p style="font-size: 12px; color: #64748b; margin: 10px 0">
+          Entrez vos identifiants sécurisés.
+        </p>
+        <form id="form-connexion">
+          <div>
+            <label>E-mail *</label
+            ><input
+              type="email"
+              id="login-email"
+              required
+              autocomplete="username"
+            />
+          </div>
+          <div style="margin-top: 10px">
+            <label>Mot de passe *</label
+            ><input
+              type="password"
+              id="login-pass"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+          <button type="submit" class="btn-principal">Se connecter</button>
+          <p class="info">
+            Première fois ?
+            <a
+              href="#"
+              onclick="
+                fermer('modal-connexion');
+                document
+                  .getElementById('modal-inscription')
+                  .classList.remove('hidden');
+                return false;
+              "
+              style="color: var(--vert); font-weight: 600"
+              >S'inscrire</a
+            >
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Script JS externe -->
+    <script src="script.js"></script>
+  </body>
+</html>
