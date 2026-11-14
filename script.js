@@ -177,6 +177,51 @@ let currentRole = "collab";
 
 function configurerEspace(role, titreEspace) {
   currentRole = role;
+  function configurerEspace(role, titreEspace) {
+  currentRole = role;
+
+  // 👇 CORRECTION : Chaque rôle a ses champs obligatoires
+  // On enlève d'abord TOUTES les obligations
+  ['dept','commune','cs','zone','ecole','matricule'].forEach(id => {
+    let el = document.getElementById(id);
+    if(el) el.required = false;
+  });
+
+  // On réactive uniquement ce que ce rôle doit vraiment remplir
+  if(role === 'collab' || role === 'directeur') {
+    // Tout est visible pour eux
+    ['dept','commune','cs','zone','ecole','matricule'].forEach(id => {
+      document.getElementById(id).required = true;
+    });
+  }
+  else if(role === 'up') {
+    // UP : tout sauf Zone (cachée)
+    ['dept','commune','cs','ecole','matricule'].forEach(id => {
+      document.getElementById(id).required = true;
+    });
+  }
+  else if(role === 'cp') {
+    // CP : tout sauf Ecole (cachée)
+    ['dept','commune','cs','zone','matricule'].forEach(id => {
+      document.getElementById(id).required = true;
+    });
+  }
+  else if(role === 'ccs') {
+    // CCS : seulement Dept + Commune + Matricule
+    // CS, Zone, Ecole sont cachées / calculées automatiquement
+    ['dept','commune','matricule'].forEach(id => {
+      document.getElementById(id).required = true;
+    });
+  }
+  else if(role === 'ddemp') {
+    
+    document.getElementById('dept').required = true;
+  }
+  else if(role === 'ministere') {
+    
+  }
+
+
   document.getElementById("titre-espace-nom").innerHTML = `👥 ${titreEspace}`;
 
   const groupZone = document.getElementById("group-zone");
