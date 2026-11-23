@@ -441,49 +441,74 @@ if (formInscription) {
 let currentUser = null;
 const formConnexion = document.getElementById("form-connexion");
 if (formConnexion) {
-  formConnexion.onsubmit = (e) => {
+  formConnexion.onsubmit = async (e) => {
     e.preventDefault();
     const email = document.getElementById("login-email").value;
     const pass = document.getElementById("login-pass").value;
     const momentConnexion = new Date().toLocaleString();
-
-    let storedMinEmail =
-      localStorage.getItem("ministere_email") || "mikejuniormc3@gmail.com";
-    let storedMinPass = localStorage.getItem("ministere_pass") || "1234";
-
     if (currentRole === "ministere") {
-      if (email === storedMinEmail && pass === storedMinPass) {
+      try {
+        const url =
+          `${SUPABASE_URL}/rest/v1/ministere_comptes` +
+          `?email=eq.${encodeURIComponent(email)}` +
+          `&password=eq.${encodeURIComponent(pass)}` +
+          `&statut=eq.valide&select=*`;
+        const res = await fetch(url, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+        const rows = await res.json();
+        if (!res.ok || !Array.isArray(rows) || rows.length === 0) {
+          alert("Identifiants du Ministère incorrects ou compte non validé.");
+          return;
+        }
+        const compteMin = rows[0];
+
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/ministere_comptes?id=eq.${encodeURIComponent(compteMin.id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ derniere_connexion: momentConnexion }),
+          },
+        );
+
         localStorage.setItem("admin_derniere_connexion", momentConnexion);
         currentUser = {
-          nom: "ADMIN",
-          prenom: "Ministère",
-          email: email,
-          contact: "+229 00000000",
+          id: compteMin.id,
+          nom: compteMin.nom || "ADMIN",
+          prenom: compteMin.prenom || "Ministère",
+          email: compteMin.email,
+          contact: compteMin.contact || "",
           ecole: "Niveau Central",
           cs: "CS LOKOSSA-2",
           zone: "1",
           dept: "Niveau Central",
           role: "ministere",
           derniereConnexion: momentConnexion,
-          signature: "",
+          signature: compteMin.signature || "",
         };
-
         document.getElementById("collab-nom").textContent =
           currentUser.nom + " " + currentUser.prenom;
         document.getElementById("collab-ecole").textContent = currentUser.ecole;
         document.getElementById("collab-derniere-connexion").textContent =
           `Dernière connexion : ${currentUser.derniereConnexion}`;
-
         fermer("modal-connexion");
         configurerEspace("ministere", "ESPACE MINISTÈRE");
         actualiserAffichageDernieresConnexions();
         return;
-      } else {
-        alert("Identifiants du Ministère incorrects.");
+      } catch (err) {
+        console.error(err);
+        alert("Erreur de connexion à Supabase pour le compte Ministère.");
         return;
       }
     }
-
     let valides = JSON.parse(
       localStorage.getItem("utilisateurs_valides") || "[]",
     );
@@ -493,14 +518,12 @@ if (formConnexion) {
     if (found) {
       found.derniereConnexion = momentConnexion;
       localStorage.setItem("utilisateurs_valides", JSON.stringify(valides));
-
       currentUser = found;
       document.getElementById("collab-nom").textContent =
         found.nom + " " + found.prenom;
       document.getElementById("collab-ecole").textContent = found.ecole;
       document.getElementById("collab-derniere-connexion").textContent =
         `Dernière connexion : ${found.derniereConnexion}`;
-
       fermer("modal-connexion");
       configurerEspace(found.role, "ESPACE " + found.role.toUpperCase());
       actualiserAffichageDernieresConnexions();
