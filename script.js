@@ -408,14 +408,39 @@ if (formInscription) {
           return;
         }
 
-        let allInscriptions = JSON.parse(
-          localStorage.getItem("toutes_inscriptions") || "[]",
-        );
-        allInscriptions.push(d);
-        localStorage.setItem(
-          "toutes_inscriptions",
-          JSON.stringify(allInscriptions),
-        );
+                const resRole = await fetch(`${SUPABASE_URL}/rest/v1/inscriptions_roles`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify({
+            dept: d.dept,
+            commune: d.commune,
+            cs: d.cs,
+            zone: d.zone,
+            ecole: d.ecole,
+            matricule: d.matricule,
+            nom: d.nom,
+            prenom: d.prenom,
+            email: d.email,
+            contact: d.contact,
+            password: d.password,
+            signature: d.signature,
+            statut: "en_attente",
+            date: d.date,
+            derniere_connexion: "Jamais",
+            role: d.role,
+          }),
+        });
+        if (!resRole.ok) {
+          const errRole = await resRole.json().catch(() => ({}));
+          throw new Error(
+            errRole.message || "Erreur Supabase lors de l'inscription",
+          );
+        }
         alert(
           "✅ Inscription réussie ! Votre demande a été transmise à votre supérieur hiérarchique direct.",
         );
