@@ -421,9 +421,9 @@ if (formInscription) {
         );
         fermer("modal-inscription");
         formInscription.reset();
-      } catch (err) {
+            } catch (err) {
         console.error(err);
-        alert("⚠️ Une erreur est survenue lors de l'enregistrement.");
+        alert("⚠️ Détail erreur : " + (err && err.message ? err.message : String(err)));
       }
     };
     if (signatureInput && signatureInput.files && signatureInput.files[0]) {
@@ -2322,3 +2322,4 @@ function ouvrirListeEnseignantsCCS() {
 
   document.getElementById("modal-liste-enseignants").classList.remove("hidden");
 }
+
