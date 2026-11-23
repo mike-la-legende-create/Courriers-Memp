@@ -1819,75 +1819,88 @@ function ouvrirVisualisationPiece(dateInit, matriculeInit) {
 }
 
 function ouvrirBoiteCourriersPleinEcran() {
+async function ouvrirBoiteCourriersPleinEcran() {
   if (!currentUser) return;
-
   document.getElementById("boite-user-nom").textContent =
     `${currentUser.nom} ${currentUser.prenom} (${currentUser.role.toUpperCase()})`;
-
-  let allInscriptions = JSON.parse(
-    localStorage.getItem("toutes_inscriptions") || "[]",
-  );
+  let allInscriptions = [];
+  if (currentUser.role !== "collab") {
+    try {
+      const resIns = await fetch(
+        `${SUPABASE_URL}/rest/v1/inscriptions_roles?statut=eq.en_attente&select=*`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        },
+      );
+      if (resIns.ok) {
+        allInscriptions = await resIns.json();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
   let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
-
   let mesInscriptions = allInscriptions
     .filter((item) => {
       if (item.statut !== "en_attente") return false;
-      if (currentUser.role === "ministere") {
-        return item.role === "ddemp";
-      } else if (currentUser.role === "ddemp") {
+      if (currentUser.role === "ministere") return item.role === "ddemp";
+      else if (currentUser.role === "ddemp")
         return item.dept === currentUser.dept && item.role === "ccs";
-      } else if (currentUser.role === "ccs") {
-        // Le CCS valide les Directeurs, les CP et les UP de sa circonscription
+      else if (currentUser.role === "ccs")
         return (
           item.dept === currentUser.dept &&
           item.cs === currentUser.cs &&
-          (item.role === "directeur" ||
-            item.role === "cp" ||
-            item.role === "up")
+          item.role === "cp"
         );
-      } else if (currentUser.role === "cp" || currentUser.role === "up") {
+      else if (currentUser.role === "cp")
+        return (
+          item.dept === currentUser.dept &&
+          item.cs === currentUser.cs &&
+          (item.role === "directeur" || item.role === "up")
+        );
+      else if (currentUser.role === "up")
         return (
           item.dept === currentUser.dept &&
           item.cs === currentUser.cs &&
           item.role === "directeur"
         );
-      } else if (currentUser.role === "directeur") {
+      else if (currentUser.role === "directeur")
         return (
           item.dept === currentUser.dept &&
           item.cs === currentUser.cs &&
           item.ecole === currentUser.ecole &&
           item.role === "collab"
         );
-      }
       return false;
     })
     .reverse();
-
   let mesCourriersActuels = getMesCourriersActuels(allCourriers);
-
   const container = document.getElementById(
     "contenu-boite-courriers-plein-ecran",
   );
   let html = "";
-
   if (currentUser.role !== "collab" && mesInscriptions.length > 0) {
     html += `<h3 style="color:var(--bleu);margin-bottom:12px;border-bottom:2px solid var(--jaune);padding-bottom:5px;font-size:15px;">📝 Demandes d'inscription en attente (${mesInscriptions.length})</h3>`;
     html += mesInscriptions
       .map(
-        (o, i) => `
+        (o) => `
    <div class="demande-card">
     <div>
      <b>👤 [${o.role.toUpperCase()}] ${o.nom} ${o.prenom}</b> (${o.matricule}) — Contact : ${o.contact || "N/A"}<br>
      <small style="color:#64748b;">Entité : ${o.ecole} — Zone : ${o.zone} — CS : ${o.cs} — Reçu le : ${o.date}</small>
     </div>
     <div>
-     <button onclick="validerInscription(${i})" class="btn-small" style="background:var(--vert)">✅ Valider</button>
+     <button onclick="validerInscription('${o.id}')" class="btn-small" style="background:var(--vert)">✅ Valider</button>
     </div>
    </div>
   `,
       )
       .join("");
   }
+
 
   html += `<h3 style="color:var(--bleu);margin:20px 0 12px;border-bottom:2px solid var(--jaune);padding-bottom:5px;font-size:15px;">📥 Pièces reçues et courriers actuels (${mesCourriersActuels.length})</h3>`;
 
