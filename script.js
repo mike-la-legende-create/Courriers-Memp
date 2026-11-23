@@ -537,31 +537,47 @@ if (formConnexion) {
 
 function ouvrirModalModificationMinistere() {
   document.getElementById("nouveau-email-min").value =
-    localStorage.getItem("ministere_email") || "mikejuniormc3@gmail.com";
-  document.getElementById("nouveau-pass-min").value =
-    localStorage.getItem("ministere_pass") || "1234";
+    (currentUser && currentUser.email) || "";
+  document.getElementById("nouveau-pass-min").value = "";
   document.getElementById("modal-modif-ministere").classList.remove("hidden");
 }
-
 const formModifMinistere = document.getElementById("form-modif-ministere");
 if (formModifMinistere) {
-  formModifMinistere.onsubmit = (e) => {
+  formModifMinistere.onsubmit = async (e) => {
     e.preventDefault();
     let nouvEmail = document.getElementById("nouveau-email-min").value;
     let nouvPass = document.getElementById("nouveau-pass-min").value;
-
-    localStorage.setItem("ministere_email", nouvEmail);
-    localStorage.setItem("ministere_pass", nouvPass);
-
-    if (currentUser) {
-      currentUser.email = nouvEmail;
+    try {
+      const filtre =
+        currentUser && currentUser.id
+          ? `id=eq.${encodeURIComponent(currentUser.id)}`
+          : `email=eq.${encodeURIComponent((currentUser && currentUser.email) || "")}`;
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/ministere_comptes?${filtre}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ email: nouvEmail, password: nouvPass }),
+        },
+      );
+      if (!res.ok) throw new Error("Échec mise à jour Supabase");
+      if (currentUser) {
+        currentUser.email = nouvEmail;
+      }
+      alert("✅ Les accès du Ministère ont été mis à jour avec succès !");
+      fermer("modal-modif-ministere");
+    } catch (err) {
+      console.error(err);
+      alert(
+        "⚠️ Impossible de mettre à jour les accès du Ministère dans Supabase.",
+      );
     }
-
-    alert("✅ Les accès du Ministère ont été mis à jour avec succès !");
-    fermer("modal-modif-ministere");
   };
 }
-
 function actualiserAffichageDernieresConnexions() {
   let valides = JSON.parse(
     localStorage.getItem("utilisateurs_valides") || "[]",
