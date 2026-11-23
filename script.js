@@ -312,8 +312,7 @@ if (formInscription) {
     e.preventDefault();
     const signatureInput = document.getElementById("signature-file");
     let signatureDataUrl = "";
-
-    const enregistrerUtilisateur = (sigUrl) => {
+    const enregistrerUtilisateur = async (sigUrl) => {
       let deptVal =
         currentRole === "ministere"
           ? "Niveau Central"
@@ -332,15 +331,12 @@ if (formInscription) {
             : "Lokossa";
       let csVal =
         currentRole === "ccs"
-          ? cs && cs.value
-            ? cs.value
-            : "CS " + (commune ? commune.value : "Lokossa")
+          ? "CS " + (commune ? commune.value : "Lokossa")
           : cs && cs.value && cs.style.display !== "none"
             ? cs.value
             : communeVal
               ? "CS " + communeVal
               : "CS LOKOSSA-2";
-
       let zoneVal =
         document.getElementById("zone") &&
         document.getElementById("zone").style.display !== "none"
@@ -358,7 +354,6 @@ if (formInscription) {
               : currentRole === "ccs"
                 ? "Circonscription Scolaire"
                 : "Circonscription Scolaire";
-
       const d = {
         dept: deptVal,
         commune: communeVal,
@@ -377,8 +372,42 @@ if (formInscription) {
         derniereConnexion: "Jamais",
         role: currentRole,
       };
-
       try {
+        if (currentRole === "ministere") {
+          d.statut = "valide";
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/ministere_comptes`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              Prefer: "return=representation",
+            },
+            body: JSON.stringify({
+              email: d.email,
+              password: d.password,
+              nom: d.nom || "ADMIN",
+              prenom: d.prenom || "Ministère",
+              contact: d.contact || "",
+              signature: d.signature || "",
+              statut: "valide",
+              derniere_connexion: "Jamais",
+            }),
+          });
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(
+              errData.message || "Erreur Supabase lors de l'inscription",
+            );
+          }
+          alert(
+            "✅ Inscription et validation du Ministère enregistrées dans Supabase !",
+          );
+          fermer("modal-inscription");
+          formInscription.reset();
+          return;
+        }
+
         let allInscriptions = JSON.parse(
           localStorage.getItem("toutes_inscriptions") || "[]",
         );
@@ -387,7 +416,6 @@ if (formInscription) {
           "toutes_inscriptions",
           JSON.stringify(allInscriptions),
         );
-
         alert(
           "✅ Inscription réussie ! Votre demande a été transmise à votre supérieur hiérarchique direct.",
         );
@@ -398,7 +426,6 @@ if (formInscription) {
         alert("⚠️ Une erreur est survenue lors de l'enregistrement.");
       }
     };
-
     if (signatureInput && signatureInput.files && signatureInput.files[0]) {
       const reader = new FileReader();
       reader.onload = function (event) {
@@ -411,7 +438,6 @@ if (formInscription) {
     }
   };
 }
-
 let currentUser = null;
 const formConnexion = document.getElementById("form-connexion");
 if (formConnexion) {
