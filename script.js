@@ -1822,7 +1822,6 @@ function ouvrirVisualisationPiece(dateInit, matriculeInit) {
   allerPage("page-visualisation-piece");
 }
 
-function ouvrirBoiteCourriersPleinEcran() {
 async function ouvrirBoiteCourriersPleinEcran() {
   if (!currentUser) return;
   document.getElementById("boite-user-nom").textContent =
