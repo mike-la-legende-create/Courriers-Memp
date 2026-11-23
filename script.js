@@ -534,29 +534,65 @@ if (formConnexion) {
         return;
       }
     }
-    let valides = JSON.parse(
-      localStorage.getItem("utilisateurs_valides") || "[]",
-    );
-    const found = valides.find(
-      (u) => u.email === email && u.password === pass && u.role === currentRole,
-    );
-    if (found) {
-      found.derniereConnexion = momentConnexion;
-      localStorage.setItem("utilisateurs_valides", JSON.stringify(valides));
-      currentUser = found;
-      document.getElementById("collab-nom").textContent =
-        found.nom + " " + found.prenom;
-      document.getElementById("collab-ecole").textContent = found.ecole;
-      document.getElementById("collab-derniere-connexion").textContent =
-        `Dernière connexion : ${found.derniereConnexion}`;
-      fermer("modal-connexion");
-      configurerEspace(found.role, "ESPACE " + found.role.toUpperCase());
-      actualiserAffichageDernieresConnexions();
-    } else {
-      alert(
-        "Identifiants incorrects ou compte non encore validé par votre supérieur hiérarchique direct.",
-      );
+        try {
+      const urlRole =
+        `${SUPABASE_URL}/rest/v1/inscriptions_roles` +
+        `?email=eq.${encodeURIComponent(email)}` +
+        `&password=eq.${encodeURIComponent(pass)}` +
+        `&role=eq.${encodeURIComponent(currentRole)}` +
+        `&statut=eq.valide&select=*`;
+      const resRole = await fetch(urlRole, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+      const rowsRole = await resRole.json();
+      if (resRole.ok && Array.isArray(rowsRole) && rowsRole.length > 0) {
+        const found = rowsRole[0];
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/inscriptions_roles?id=eq.${encodeURIComponent(found.id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ derniere_connexion: momentConnexion }),
+          },
+        );
+        found.derniereConnexion = momentConnexion;
+
+        let valides = JSON.parse(
+          localStorage.getItem("utilisateurs_valides") || "[]",
+        );
+        const idxLocal = valides.findIndex(
+          (u) => u.email === found.email && u.role === found.role,
+        );
+        if (idxLocal >= 0) valides[idxLocal] = found;
+        else valides.push(found);
+        localStorage.setItem("utilisateurs_valides", JSON.stringify(valides));
+
+        currentUser = found;
+        document.getElementById("collab-nom").textContent =
+          found.nom + " " + found.prenom;
+        document.getElementById("collab-ecole").textContent = found.ecole;
+        document.getElementById("collab-derniere-connexion").textContent =
+          `Dernière connexion : ${found.derniereConnexion}`;
+        fermer("modal-connexion");
+        configurerEspace(found.role, "ESPACE " + found.role.toUpperCase());
+        actualiserAffichageDernieresConnexions();
+      } else {
+        alert(
+          "Identifiants incorrects ou compte non encore validé par votre supérieur hiérarchique direct.",
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erreur de connexion à Supabase. Vérifiez votre réseau.");
     }
+
   };
 }
 
