@@ -2264,67 +2264,38 @@ function ouvrirBibliothequePleinEcran() {
   allerPage("page-bibliotheque-plein-ecran");
 }
 
-function validerInscription(index) {
-  let allInscriptions = JSON.parse(
-    localStorage.getItem("toutes_inscriptions") || "[]",
-  );
-
-  let mesInscriptions = allInscriptions
-    .filter((item) => {
-      if (item.statut !== "en_attente") return false;
-      if (currentUser.role === "ministere") {
-        return item.role === "ddemp";
-      } else if (currentUser.role === "ddemp") {
-        return item.dept === currentUser.dept && item.role === "ccs";
-      } else if (currentUser.role === "ccs") {
-        return (
-          item.dept === currentUser.dept &&
-          item.cs === currentUser.cs &&
-          (item.role === "directeur" ||
-            item.role === "cp" ||
-            item.role === "up")
-        );
-      } else if (currentUser.role === "cp" || currentUser.role === "up") {
-        return (
-          item.dept === currentUser.dept &&
-          item.cs === currentUser.cs &&
-          item.role === "directeur"
-        );
-      } else if (currentUser.role === "directeur") {
-        return (
-          item.dept === currentUser.dept &&
-          item.cs === currentUser.cs &&
-          item.ecole === currentUser.ecole &&
-          item.role === "collab"
-        );
-      }
-      return false;
-    })
-    .reverse();
-
-  let cible = mesInscriptions[index];
-  if (!cible) return;
-
-  cible.statut = "valide";
-
-  allInscriptions.forEach((it) => {
-    if (it.email === cible.email) it.statut = "valide";
-  });
-  localStorage.setItem("toutes_inscriptions", JSON.stringify(allInscriptions));
-
-  let valides = JSON.parse(
-    localStorage.getItem("utilisateurs_valides") || "[]",
-  );
-  if (!valides.some((u) => u.email === cible.email)) {
-    valides.push(cible);
-    localStorage.setItem("utilisateurs_valides", JSON.stringify(valides));
+async function validerInscription(inscriptionId) {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/inscriptions_roles?id=eq.${encodeURIComponent(inscriptionId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ statut: "valide" }),
+      },
+    );
+    if (!res.ok) throw new Error("Échec de la validation sur Supabase");
+    const updatedRows = await res.json();
+    if (Array.isArray(updatedRows) && updatedRows.length > 0) {
+      let valides = JSON.parse(
+        localStorage.getItem("utilisateurs_valides") || "[]",
+      );
+      valides.push(updatedRows[0]);
+      localStorage.setItem("utilisateurs_valides", JSON.stringify(valides));
+    }
+    alert("✅ Inscription validée avec succès !");
+    ouvrirBoiteCourriersPleinEcran();
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Erreur lors de la validation de l'inscription dans Supabase.");
   }
-
-  alert(
-    "✅ Inscription validée avec succès ! Le souscripteur peut désormais se connecter.",
-  );
-  ouvrirBoiteCourriersPleinEcran();
 }
+
 
 function ouvrirListeEnseignantsCCS() {
   if (!currentUser || currentUser.role !== "ccs") return;
