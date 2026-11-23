@@ -1,3 +1,7 @@
+window.addEventListener("error", function (e) {
+  alert("Erreur JS (" + (e.filename || "script") + ":" + e.lineno + ") : " + e.message);
+});
+
 function updateDate() {
   const el = document.getElementById("date-heure");
   if (el)
