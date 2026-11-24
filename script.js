@@ -1167,7 +1167,49 @@ function afficherFormulaireRenvoiPiece(pieceIdx, courantIdx) {
   divBox.classList.remove("hidden");
 }
 
-function confirmerRenvoiPiece(pieceIdx, courantIdx) {
+async function sauvegarderCourrierSupabase(courrierObj) {
+  if (courrierObj && courrierObj._supabaseId) {
+    const id = courrierObj._supabaseId;
+    const payload = { ...courrierObj };
+    delete payload._supabaseId;
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/courriers?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ data: payload }),
+      },
+    );
+    if (!res.ok) throw new Error("Échec mise à jour courrier sur Supabase");
+    return courrierObj;
+  } else {
+    const payload = { ...courrierObj };
+    delete payload._supabaseId;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/courriers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({ data: payload }),
+    });
+    if (!res.ok) throw new Error("Échec création courrier sur Supabase");
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows[0] && rows[0].id !== undefined) {
+      courrierObj._supabaseId = rows[0].id;
+    }
+    return courrierObj;
+  }
+}
+
+async function confirmerRenvoiPiece(pieceIdx, courantIdx) {
   const selected = document.querySelector(
     `input[name="dest-renvoi-${courantIdx}-${pieceIdx}"]:checked`,
   );
@@ -1182,9 +1224,16 @@ function confirmerRenvoiPiece(pieceIdx, courantIdx) {
   );
   const remarqueValeur = remarqueInput ? remarqueInput.value.trim() : "";
 
-  let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  let allCourriers = [];
+  try {
+    allCourriers = await chargerTousCourriersSupabase();
+  } catch (err) {
+    console.error(err);
+    allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  }
   let mesCourriers = getMesCourriersActuels(allCourriers);
   let cible = mesCourriers[courantIdx];
+  if (!cible) return;
 
   let pieceNomConcerne =
     cible.indicesPieces && cible.indicesPieces[pieceIdx]
@@ -1241,13 +1290,20 @@ function confirmerRenvoiPiece(pieceIdx, courantIdx) {
     details: cible.details,
   };
 
-  allCourriers.push(nouvellePieceSeule);
-  localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
-  alert(
-    `🔄 Pièce renvoyée individuellement avec succès à ${roleDestinataire.toUpperCase()} !`,
-  );
-  ouvrirBoiteCourriersPleinEcran();
+  try {
+    await sauvegarderCourrierSupabase(nouvellePieceSeule);
+    allCourriers.push(nouvellePieceSeule);
+    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+    alert(
+      `🔄 Pièce renvoyée individuellement avec succès à ${roleDestinataire.toUpperCase()} !`,
+    );
+    ouvrirBoiteCourriersPleinEcran();
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Erreur lors du renvoi de la pièce sur Supabase.");
+  }
 }
+
 
 function transmettreAuteurRemarque(pieceIdx, courantIdx) {
   let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
