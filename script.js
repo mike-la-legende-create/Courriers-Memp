@@ -334,13 +334,11 @@ if (formInscription) {
             ? commune.value
             : "Lokossa";
       let csVal =
-        currentRole === "ccs"
-          ? "CS " + (commune ? commune.value : "Lokossa")
-          : cs && cs.value && cs.style.display !== "none"
-            ? cs.value
-            : communeVal
-              ? "CS " + communeVal
-              : "CS LOKOSSA-2";
+        cs && cs.value
+          ? cs.value.trim()
+          : communeVal && communeVal !== "Départemental"
+            ? "CS " + communeVal
+            : "CS LOKOSSA-2";
       let zoneVal =
         document.getElementById("zone") &&
         document.getElementById("zone").style.display !== "none"
