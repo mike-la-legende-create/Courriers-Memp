@@ -954,7 +954,7 @@ function constituerDossier() {
   allerPage("page-dossier");
 }
 
-function envoyerPiece(type) {
+async function envoyerPiece(type) {
   if (!currentUser) {
     alert("Connectez-vous avant de transmettre un dossier.");
     return false;
@@ -1038,27 +1038,64 @@ function envoyerPiece(type) {
   };
 
   try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/courriers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({ data: p }),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || "Erreur Supabase lors de l'envoi");
+    }
+
     let allCourriers = JSON.parse(
       localStorage.getItem("tous_courriers") || "[]",
     );
     allCourriers.push(p);
     localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+
     alert(
-      `✅ Votre document a été transmis avec succès ${route.label}. Il est maintenant disponible dans la boîte de réception du destinataire sur cet appareil/navigateur.`,
+      `✅ Votre document a été transmis avec succès ${route.label}. Il est maintenant synchronisé sur Supabase.`,
     );
     return true;
   } catch (err) {
     console.error(err);
     alert(
-      "Une erreur est survenue pendant la transmission. Vérifiez l’espace de stockage du navigateur.",
+      "⚠️ Impossible d'envoyer le courrier sur Supabase : " +
+        (err && err.message ? err.message : String(err)),
     );
     return false;
   }
 }
 
-function envoyerToutDossier() {
-  const transmis = envoyerPiece("Dossier officiel de pièces & justificatifs");
+async function envoyerToutDossier() {
+  const transmis = await envoyerPiece(
+    "Dossier officiel de pièces & justificatifs",
+  );
   if (transmis) allerPage("page-mon-espace");
+}
+
+async function chargerTousCourriersSupabase() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/courriers?select=id,data`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+  });
+  if (!res.ok) throw new Error("Erreur de lecture des courriers sur Supabase");
+  const rows = await res.json();
+  const liste = Array.isArray(rows)
+    ? rows
+        .filter((r) => r && r.data)
+        .map((r) => ({ ...r.data, _supabaseId: r.id }))
+    : [];
+  localStorage.setItem("tous_courriers", JSON.stringify(liste));
+  return liste;
 }
 
 
