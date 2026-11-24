@@ -1797,8 +1797,14 @@ async function ouvrirBoiteCourriersPleinEcran() {
       console.error(err);
     }
   }
-  let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
-    let mesInscriptions = allInscriptions
+  let allCourriers = [];
+  try {
+    allCourriers = await chargerTousCourriersSupabase();
+  } catch (err) {
+    console.error(err);
+    allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  }
+  let mesInscriptions = allInscriptions
     .filter((item) => {
       if (item.statut !== "en_attente") return false;
       if (currentUser.role === "ministere") return item.role === "ddemp";
