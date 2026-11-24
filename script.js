@@ -1763,7 +1763,7 @@ async function ouvrirBoiteCourriersPleinEcran() {
     }
   }
   let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
-  let mesInscriptions = allInscriptions
+    let mesInscriptions = allInscriptions
     .filter((item) => {
       if (item.statut !== "en_attente") return false;
       if (currentUser.role === "ministere") return item.role === "ddemp";
@@ -1773,7 +1773,9 @@ async function ouvrirBoiteCourriersPleinEcran() {
         return (
           item.dept === currentUser.dept &&
           item.cs === currentUser.cs &&
-          item.role === "cp"
+          (item.role === "directeur" ||
+            item.role === "up" ||
+            item.role === "cp")
         );
       else if (currentUser.role === "cp")
         return (
@@ -1797,6 +1799,7 @@ async function ouvrirBoiteCourriersPleinEcran() {
       return false;
     })
     .reverse();
+
   let mesCourriersActuels = getMesCourriersActuels(allCourriers);
   const container = document.getElementById(
     "contenu-boite-courriers-plein-ecran",
