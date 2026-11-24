@@ -1057,95 +1057,12 @@ function envoyerPiece(type) {
     return false;
   }
 }
-let checkedCheckboxes = document.querySelectorAll(".cb-piece:checked");
-let indicesPieces = [];
-checkedCheckboxes.forEach((cb) => {
-  indicesPieces.push(cb.value);
-});
-if (indicesPieces.length === 0) indicesPieces.push("1");
-
-let piecesEnvoyees = [];
-checkedCheckboxes.forEach((cb) => {
-  let idx = parseInt(cb.value) - 1;
-  piecesEnvoyees.push(listePiecesOfficielles[idx] || "Pièce officielle");
-});
-if (piecesEnvoyees.length === 0) piecesEnvoyees.push(type);
-
-let nomSaisiSurPiece = currentUser
-  ? currentUser.nom + " " + currentUser.prenom
-  : "Expéditeur";
-let inputNomField = document.querySelector(".champ-nom-agent");
-if (inputNomField && inputNomField.value.trim() !== "") {
-  nomSaisiSurPiece = inputNomField.value.trim();
-}
-
-let detailsRemplis = [];
-document.querySelectorAll(".champ-form").forEach((el) => {
-  let label = el.getAttribute("data-label") || "Champ";
-  let valeur =
-    el.value || (el.files && el.files[0] ? el.files[0].name : "Non renseigné");
-  detailsRemplis.push(`<b>${label} :</b> ${valeur}`);
-});
-
-let roleCible = "directeur";
-let labelDestinataire = "au Directeur";
-
-if (currentRole === "collab") {
-  roleCible = "directeur";
-  labelDestinataire = "au Directeur d'école";
-} else if (currentRole === "directeur") {
-  roleCible = "ccs";
-  labelDestinataire = "au Chef de la Circonscription Scolaire (C/CS)";
-} else if (currentRole === "up") {
-  roleCible = "cp";
-  labelDestinataire = "au Conseiller Pédagogique (CP)";
-} else if (currentRole === "cp") {
-  roleCible = "ccs";
-  labelDestinataire = "au Chef de Circonscription (C/CS)";
-} else if (currentRole === "ccs") {
-  roleCible = "ddemp";
-  labelDestinataire = "à la Direction Départementale (DDEMP)";
-} else if (currentRole === "ddemp") {
-  roleCible = "ministere";
-  labelDestinataire = "au Ministère";
-}
-
-const p = {
-  type: type,
-  indicesPieces: indicesPieces,
-  nomsPieces: piecesEnvoyees.join(", "),
-  ecole: currentUser.ecole,
-  matricule: currentUser.matricule || "N/A",
-  nom: nomSaisiSurPiece,
-  emailOwner: currentUser.email,
-  contact: currentUser.contact,
-  date: new Date().toLocaleString(),
-  role: currentRole,
-  dept: currentUser.dept,
-  cs: currentUser.cs,
-  zone: currentUser.zone,
-  roleActuel: roleCible,
-  destinataireSpecifiqueEmail: null,
-  cachetApposeParPiece: {},
-  signateursParPiece: {},
-  remarquesPieces: {},
-  traiteEtClasse: false,
-  historiqueTraitements: [],
-  details: detailsRemplis.join("<br>"),
-};
-
-let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
-allCourriers.push(p);
-localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
-
-alert(`✅ Votre document a été transmis avec succès ${labelDestinataire}.`);
 
 function envoyerToutDossier() {
   const transmis = envoyerPiece("Dossier officiel de pièces & justificatifs");
   if (transmis) allerPage("page-mon-espace");
 }
-envoyerPiece("Dossier officiel de pièces & justificatifs");
-allerPage("page-mon-espace");
+
 
 const courrierFlow = ["collab", "directeur", "cp", "ccs", "ddemp", "ministere"];
 
