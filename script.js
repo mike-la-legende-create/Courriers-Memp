@@ -1409,10 +1409,17 @@ function apposerCachetPieceUnique(pieceIdx, courantIdx) {
   ouvrirVisualisationPiece(cible.date, cible.matricule);
 }
 
-function transmettrePieceUnique(pieceIdx, courantIdx) {
-  let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+async function transmettrePieceUnique(pieceIdx, courantIdx) {
+  let allCourriers = [];
+  try {
+    allCourriers = await chargerTousCourriersSupabase();
+  } catch (err) {
+    console.error(err);
+    allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  }
   let mesCourriers = getMesCourriersActuels(allCourriers);
   let cible = mesCourriers[courantIdx];
+  if (!cible) return;
 
   let currentSignateurs =
     cible.signateursParPiece && cible.signateursParPiece[pieceIdx]
@@ -1473,13 +1480,20 @@ function transmettrePieceUnique(pieceIdx, courantIdx) {
     details: cible.details,
   };
 
-  allCourriers.push(nouvellePieceSeule);
-  localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
-  alert(
-    "📤 Pièce transmise individuellement avec succès au niveau supérieur !",
-  );
-  ouvrirVisualisationPiece(cible.date, cible.matricule);
+  try {
+    await sauvegarderCourrierSupabase(nouvellePieceSeule);
+    allCourriers.push(nouvellePieceSeule);
+    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+    alert(
+      "📤 Pièce transmise individuellement avec succès au niveau supérieur !",
+    );
+    ouvrirVisualisationPiece(cible.date, cible.matricule);
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Erreur lors de la transmission de la pièce sur Supabase.");
+  }
 }
+
 
 function archiverPieceUnique(pieceIdx, courantIdx) {
   let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
