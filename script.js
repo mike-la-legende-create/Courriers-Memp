@@ -1304,10 +1304,11 @@ async function confirmerRenvoiPiece(pieceIdx, courantIdx) {
       `🔄 Pièce renvoyée individuellement avec succès à ${roleDestinataire.toUpperCase()} !`,
     );
     ouvrirBoiteCourriersPleinEcran();
-  } catch (err) {
+    } catch (err) {
     console.error(err);
-    alert("⚠️ Erreur lors du renvoi de la pièce sur Supabase.");
+    alert("⚠️ Erreur Supabase : " + (err && err.message ? err.message : err));
   }
+
 }
 
 
@@ -1423,9 +1424,9 @@ async function apposerCachetPieceUnique(pieceIdx, courantIdx) {
     localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
     alert("🔏 Cachet administratif et signature apposés sur la pièce !");
     ouvrirVisualisationPiece(cible.date, cible.matricule);
-  } catch (err) {
+    } catch (err) {
     console.error(err);
-    alert("⚠️ Erreur lors de l'enregistrement du cachet sur Supabase.");
+    alert("⚠️ Erreur Supabase : " + (err && err.message ? err.message : err));
   }
 }
 
@@ -1606,10 +1607,11 @@ async function archiverPieceUnique(pieceIdx, courantIdx) {
     localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
     alert("📦 Pièce archivée individuellement avec succès dans la bibliothèque !");
     ouvrirBoiteCourriersPleinEcran();
-  } catch (err) {
+    } catch (err) {
     console.error(err);
-    alert("⚠️ Erreur lors de l'archivage de la pièce sur Supabase.");
+    alert("⚠️ Erreur Supabase : " + (err && err.message ? err.message : err));
   }
+
 }
 
 function telechargerCourrierDirect(dateInit, matriculeInit) {
