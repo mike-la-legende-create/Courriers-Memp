@@ -1510,10 +1510,18 @@ async function transmettrePieceUnique(pieceIdx, courantIdx) {
 }
 
 
-function archiverPieceUnique(pieceIdx, courantIdx) {
-  let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+async function archiverPieceUnique(pieceIdx, courantIdx) {
+  let allCourriers = [];
+  try {
+    allCourriers = await chargerTousCourriersSupabase();
+  } catch (err) {
+    console.error(err);
+    allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  }
   let mesCourriers = getMesCourriersActuels(allCourriers);
   let cible = mesCourriers[courantIdx];
+
+  if (!cible) return;
 
   let currentSignateurs =
     cible.signateursParPiece && cible.signateursParPiece[pieceIdx]
@@ -1536,8 +1544,9 @@ function archiverPieceUnique(pieceIdx, courantIdx) {
   }
 
   let isSigne =
-    (cible.cachetApposeParPiece && cible.cachetApposeParPiece[pieceIdx]) ||
-    false;
+    cible.cachetApposeParPiece && cible.cachetApposeParPiece[pieceIdx]
+      ? cible.cachetApposeParPiece[pieceIdx]
+      : false;
   let pieceNomConcerne =
     cible.indicesPieces && cible.indicesPieces[pieceIdx]
       ? listePiecesOfficielles[parseInt(cible.indicesPieces[pieceIdx]) - 1]
@@ -1573,23 +1582,28 @@ function archiverPieceUnique(pieceIdx, courantIdx) {
     details: cible.details,
   };
 
-  allCourriers.push(nouvellePieceSeule);
+  try {
+    await sauvegarderCourrierSupabase(nouvellePieceSeule);
+    allCourriers.push(nouvellePieceSeule);
 
-  allCourriers.forEach((it) => {
-    if (
-      it.date === cible.date &&
-      it.matricule === cible.matricule &&
-      it.roleActuel === currentUser.role
-    ) {
-      it.traiteEtClasse = true;
+    for (const it of allCourriers) {
+      if (
+        it.date === cible.date &&
+        it.matricule === cible.matricule &&
+        it.roleActuel === currentUser.role
+      ) {
+        it.traiteEtClasse = true;
+        await sauvegarderCourrierSupabase(it);
+      }
     }
-  });
 
-  localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
-  alert(
-    "📦 Pièce archivée individuellement avec succès dans la Bibliothèque !",
-  );
-  ouvrirBoiteCourriersPleinEcran();
+    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+    alert("📦 Pièce archivée individuellement avec succès dans la bibliothèque !");
+    ouvrirBoiteCourriersPleinEcran();
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Erreur lors de l'archivage de la pièce sur Supabase.");
+  }
 }
 
 function telechargerCourrierDirect(dateInit, matriculeInit) {
