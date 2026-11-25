@@ -1168,10 +1168,11 @@ function afficherFormulaireRenvoiPiece(pieceIdx, courantIdx) {
 }
 
 async function sauvegarderCourrierSupabase(courrierObj) {
+  const payload = { ...courrierObj };
+  delete payload._supabaseId;
+
   if (courrierObj && courrierObj._supabaseId) {
     const id = courrierObj._supabaseId;
-    const payload = { ...courrierObj };
-    delete payload._supabaseId;
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/courriers?id=eq.${encodeURIComponent(id)}`,
       {
@@ -1185,11 +1186,12 @@ async function sauvegarderCourrierSupabase(courrierObj) {
         body: JSON.stringify({ data: payload }),
       },
     );
-    if (!res.ok) throw new Error("Échec mise à jour courrier sur Supabase");
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`PATCH ${res.status} : ${errText}`);
+    }
     return courrierObj;
   } else {
-    const payload = { ...courrierObj };
-    delete payload._supabaseId;
     const res = await fetch(`${SUPABASE_URL}/rest/v1/courriers`, {
       method: "POST",
       headers: {
@@ -1200,7 +1202,10 @@ async function sauvegarderCourrierSupabase(courrierObj) {
       },
       body: JSON.stringify({ data: payload }),
     });
-    if (!res.ok) throw new Error("Échec création courrier sur Supabase");
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`POST ${res.status} : ${errText}`);
+    }
     const rows = await res.json();
     if (Array.isArray(rows) && rows[0] && rows[0].id !== undefined) {
       courrierObj._supabaseId = rows[0].id;
@@ -1208,6 +1213,7 @@ async function sauvegarderCourrierSupabase(courrierObj) {
     return courrierObj;
   }
 }
+
 
 async function confirmerRenvoiPiece(pieceIdx, courantIdx) {
   const selected = document.querySelector(
