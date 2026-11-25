@@ -2097,13 +2097,19 @@ async function ouvrirBoiteCourriersPleinEcran() {
   allerPage("page-boite-courriers-plein-ecran");
 }
 
-function ouvrirBibliothequePleinEcran() {
+async function ouvrirBibliothequePleinEcran() {
   if (!currentUser) return;
 
   document.getElementById("biblio-user-nom").textContent =
     `${currentUser.nom} ${currentUser.prenom} (${currentUser.role.toUpperCase()})`;
 
-  let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  let allCourriers = [];
+  try {
+    allCourriers = await chargerTousCourriersSupabase();
+  } catch (err) {
+    console.error(err);
+    allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  }
 
   let mesCourriersBibliotheque = allCourriers
     .filter((item) => {
