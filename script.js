@@ -1370,44 +1370,59 @@ function transmettreAuteurRemarque(pieceIdx, courantIdx) {
   ouvrirBoiteCourriersPleinEcran();
 }
 
-function apposerCachetPieceUnique(pieceIdx, courantIdx) {
-  let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+async function apposerCachetPieceUnique(pieceIdx, courantIdx) {
+  let allCourriers = [];
+  try {
+    allCourriers = await chargerTousCourriersSupabase();
+  } catch (err) {
+    console.error(err);
+    allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  }
   let mesCourriers = getMesCourriersActuels(allCourriers);
   let cible = mesCourriers[courantIdx];
 
-  allCourriers.forEach((it) => {
-    if (it.date === cible.date && it.matricule === cible.matricule) {
-      if (!it.cachetApposeParPiece) it.cachetApposeParPiece = {};
-      it.cachetApposeParPiece[pieceIdx] = true;
+  if (!cible) return;
+  if (!cible.cachetApposeParPiece) cible.cachetApposeParPiece = {};
+  if (!cible.signateursParPiece) cible.signateursParPiece = {};
+  if (!cible.historiqueTraitements) cible.historiqueTraitements = [];
 
-      if (!it.signateursParPiece) it.signateursParPiece = {};
-      if (!it.signateursParPiece[pieceIdx])
-        it.signateursParPiece[pieceIdx] = [];
+  cible.cachetApposeParPiece[pieceIdx] = true;
 
-      const dejaSigne = it.signateursParPiece[pieceIdx].some((s) =>
-        typeof s === "object"
-          ? s.email === currentUser.email
-          : s === currentUser.role.toUpperCase(),
-      );
+  if (!cible.signateursParPiece[pieceIdx]) {
+    cible.signateursParPiece[pieceIdx] = [];
+  }
+  const dejaSigne = cible.signateursParPiece[pieceIdx].some((s) =>
+    typeof s === "object"
+      ? s.email === currentUser.email
+      : s === currentUser.role.toUpperCase(),
+  );
+  if (!dejaSigne) {
+    cible.signateursParPiece[pieceIdx].push({
+      role: currentUser.role.toUpperCase(),
+      email: currentUser.email,
+      nomPrenom: currentUser.nom + " " + currentUser.prenom,
+      contact: currentUser.contact || "N/A",
+      signature: currentUser.signature || "",
+    });
+  }
 
-      if (!dejaSigne) {
-        it.signateursParPiece[pieceIdx].push({
-          role: currentUser.role.toUpperCase(),
-          email: currentUser.email,
-          nomPrenom: currentUser.nom + " " + currentUser.prenom,
-          contact: currentUser.contact || "N/A",
-          signature: currentUser.signature || "",
-        });
-      }
-    }
+  cible.historiqueTraitements.push({
+    role: currentUser.role,
+    action: `cachet_appose_piece_${parseInt(pieceIdx) + 1}`,
+    date: new Date().toLocaleString(),
   });
 
-  localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
-  alert(
-    "🔏 Cachet et signature électronique apposés avec succès sur cette pièce !",
-  );
-  ouvrirVisualisationPiece(cible.date, cible.matricule);
+  try {
+    await sauvegarderCourrierSupabase(cible);
+    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+    alert("🔏 Cachet administratif et signature apposés sur la pièce !");
+    ouvrirVisualisationPiece(cible.date, cible.matricule);
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Erreur lors de l'enregistrement du cachet sur Supabase.");
+  }
 }
+
 
 async function transmettrePieceUnique(pieceIdx, courantIdx) {
   let allCourriers = [];
