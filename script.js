@@ -1709,41 +1709,53 @@ function telechargerCourrierDirect(dateInit, matriculeInit) {
 }
 
 function getMesCourriersActuels(allCourriers) {
-  let result = allCourriers.filter((item) => {
-    if (item.traiteEtClasse) return false;
-    if (currentUser.role === "ministere") {
-      return item.roleActuel === "ministere" && item.role !== "ministere";
-    } else if (currentUser.role === "ddemp") {
+  const norm = (str) => (str || "").trim().toLowerCase();
+  const userRole = norm(currentUser.role);
+  const userEmail = norm(currentUser.email);
+  const userDept = norm(currentUser.dept);
+  const userCs = norm(currentUser.cs);
+  const userZone = norm(currentUser.zone);
+  const userEcole = norm(currentUser.ecole);
+
+  let result = (Array.isArray(allCourriers) ? allCourriers : []).filter((item) => {
+    if (!item || item.traiteEtClasse) return false;
+
+    const itemRoleActuel = norm(item.roleActuel);
+    const itemRole = norm(item.role);
+
+    if (userRole === "ministere") {
+      return itemRoleActuel === "ministere" && itemRole !== "ministere";
+    } else if (userRole === "ddemp") {
       return (
-        item.dept === currentUser.dept &&
-        item.roleActuel === "ddemp" &&
-        item.role !== "ministere"
+        norm(item.dept) === userDept &&
+        itemRoleActuel === "ddemp" &&
+        itemRole !== "ministere"
       );
-    } else if (currentUser.role === "collab") {
+    } else if (userRole === "collab") {
+      const matchEmail =
+        (userEmail && norm(item.emailOwner) === userEmail) ||
+        (userEmail && norm(item.destinatairesSpecifiqueEmail) === userEmail);
+      return itemRoleActuel === "collab" && matchEmail;
+    } else if (userRole === "directeur") {
+      const zoneOk = !norm(item.zone) || norm(item.zone) === userZone;
       return (
-        item.roleActuel === "collab" &&
-        (item.emailOwner === currentUser.email ||
-          item.destinataireSpecifiqueEmail === currentUser.email)
-      );
-    } else if (currentUser.role === "directeur") {
-      const norm = (str) => (str || "").trim().toLowerCase();
-      return (
-        item.roleActuel === "directeur" &&
-        norm(item.dept) === norm(currentUser.dept) &&
-        norm(item.cs) === norm(currentUser.cs) &&
-        norm(item.zone) === norm(currentUser.zone) &&
-        norm(item.ecole) === norm(currentUser.ecole)
+        itemRoleActuel === "directeur" &&
+        norm(item.dept) === userDept &&
+        norm(item.cs) === userCs &&
+        zoneOk &&
+        norm(item.ecole) === userEcole
       );
     } else {
       return (
-        item.dept === currentUser.dept &&
-        item.cs === currentUser.cs &&
-        item.roleActuel === currentUser.role
+        norm(item.dept) === userDept &&
+        norm(item.cs) === userCs &&
+        itemRoleActuel === userRole
       );
     }
   });
   return result.reverse();
 }
+
 
 function toggleDossierCollaborateur(idDossier) {
   const el = document.getElementById(idDossier);
