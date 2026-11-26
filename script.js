@@ -1230,12 +1230,14 @@ async function confirmerRenvoiPiece(pieceIdx, courantIdx) {
   );
   const remarqueValeur = remarqueInput ? remarqueInput.value.trim() : "";
 
-  let allCourriers = [];
-  try {
-    allCourriers = await chargerTousCourriersSupabase();
-  } catch (err) {
-    console.error(err);
-    allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  let allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
+  if (!Array.isArray(allCourriers) || allCourriers.length === 0) {
+    try {
+      allCourriers = await chargerTousCourriersSupabase();
+    } catch (err) {
+      console.error(err);
+      allCourriers = [];
+    }
   }
   let mesCourriers = getMesCourriersActuels(allCourriers);
   let cible = mesCourriers[courantIdx];
@@ -1296,18 +1298,18 @@ async function confirmerRenvoiPiece(pieceIdx, courantIdx) {
     details: cible.details,
   };
 
-  try {
-    await sauvegarderCourrierSupabase(nouvellePieceSeule);
     allCourriers.push(nouvellePieceSeule);
-    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
-    alert(
-      `🔄 Pièce renvoyée individuellement avec succès à ${roleDestinataire.toUpperCase()} !`,
-    );
-    ouvrirBoiteCourriersPleinEcran();
-    } catch (err) {
+  localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+  alert(
+    `🔄 Pièce renvoyée individuellement avec succès à ${roleDestinataire.toUpperCase()} !`,
+  );
+  ouvrirBoiteCourriersPleinEcran();
+
+  sauvegarderCourrierSupabase(nouvellePieceSeule).catch((err) => {
     console.error(err);
-    alert("⚠️ Erreur Supabase : " + (err && err.message ? err.message : err));
-  }
+    alert("⚠️ Erreur de synchronisation Supabase : " + (err && err.message ? err.message : err));
+  });
+
 
 }
 
