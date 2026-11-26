@@ -1916,13 +1916,16 @@ async function ouvrirBoiteCourriersPleinEcran() {
       console.error(err);
     }
   }
-  let allCourriers = [];
-  try {
-    allCourriers = await chargerTousCourriersSupabase();
-  } catch (err) {
-    console.error(err);
-    allCourriers = JSON.parse(localStorage.getItem("tous_courriers") || "[]");
-  }
+      let allCourriers = JSON.parse(localStorage.getItem("tous_courriers")) || [];
+    try {
+      const courriersDistants = await chargerTousCourriersSupabase();
+      if (Array.isArray(courriersDistants)) {
+        allCourriers = courriersDistants;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
   let mesInscriptions = allInscriptions
     .filter((item) => {
       if (item.statut !== "en_attente") return false;
