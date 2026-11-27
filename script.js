@@ -493,7 +493,7 @@ if (formConnexion) {
         }
         const compteMin = rows[0];
 
-        await fetch(
+                fetch(
           `${SUPABASE_URL}/rest/v1/ministere_comptes?id=eq.${encodeURIComponent(compteMin.id)}`,
           {
             method: "PATCH",
@@ -504,7 +504,8 @@ if (formConnexion) {
             },
             body: JSON.stringify({ derniere_connexion: momentConnexion }),
           },
-        );
+        ).catch((err) => console.error(err));
+
 
         localStorage.setItem("admin_derniere_connexion", momentConnexion);
         currentUser = {
@@ -552,7 +553,7 @@ if (formConnexion) {
       const rowsRole = await resRole.json();
       if (resRole.ok && Array.isArray(rowsRole) && rowsRole.length > 0) {
         const found = rowsRole[0];
-        await fetch(
+                fetch(
           `${SUPABASE_URL}/rest/v1/inscriptions_roles?id=eq.${encodeURIComponent(found.id)}`,
           {
             method: "PATCH",
@@ -563,7 +564,8 @@ if (formConnexion) {
             },
             body: JSON.stringify({ derniere_connexion: momentConnexion }),
           },
-        );
+        ).catch((err) => console.error(err));
+
         found.derniereConnexion = momentConnexion;
 
         let valides = JSON.parse(
