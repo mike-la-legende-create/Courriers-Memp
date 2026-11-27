@@ -1082,6 +1082,31 @@ async function envoyerToutDossier() {
   if (transmis) allerPage("page-mon-espace");
 }
 
+function sauvegarderCacheCourriersSecurise(listeCourriers) {
+  const source = Array.isArray(listeCourriers) ? listeCourriers : [];
+  const limites = [50, 25, 10, 5];
+
+  for (const limite of limites) {
+    const portion = source.slice(-limite).map((item) => {
+      const copie = { ...item };
+      if (limite <= 10 && copie.details && copie.details.length > 1500) {
+        copie.details = copie.details.slice(0, 1500) + "...";
+      }
+      return copie;
+    });
+
+    try {
+      localStorage.setItem("tous_courriers", JSON.stringify(portion));
+      return true;
+    } catch (err) {}
+  }
+
+  try {
+    localStorage.removeItem("tous_courriers");
+  } catch (e) {}
+  return false;
+}
+
 async function chargerTousCourriersSupabase() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/courriers?select=id,data`, {
     headers: {
@@ -1096,7 +1121,7 @@ async function chargerTousCourriersSupabase() {
         .filter((r) => r && r.data)
         .map((r) => ({ ...r.data, _supabaseId: r.id }))
     : [];
-  localStorage.setItem("tous_courriers", JSON.stringify(liste));
+  sauvegarderCacheCourriersSecurise(liste);
   return liste;
 }
 
