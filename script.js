@@ -1058,9 +1058,7 @@ async function envoyerPiece(type) {
     let allCourriers = JSON.parse(
       localStorage.getItem("tous_courriers") || "[]",
     );
-    allCourriers.push(p);
-    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
-
+    allCourriers.push(p);sauvegarderCacheCourriersSecurise(allCourriers);
     alert(
       `✅ Votre document a été transmis avec succès ${route.label}. Il est maintenant synchronisé sur Supabase.`,
     );
@@ -1096,7 +1094,7 @@ function sauvegarderCacheCourriersSecurise(listeCourriers) {
     });
 
     try {
-      localStorage.setItem("tous_courriers", JSON.stringify(portion));
+      sauvegarderCacheCourriersSecurise(allCourriers);
       return true;
     } catch (err) {}
   }
@@ -1326,7 +1324,7 @@ async function confirmerRenvoiPiece(pieceIdx, courantIdx) {
   };
 
     allCourriers.push(nouvellePieceSeule);
-  localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+  sauvegarderCacheCourriersSecurise(allCourriers);
   alert(
     `🔄 Pièce renvoyée individuellement avec succès à ${roleDestinataire.toUpperCase()} !`,
   );
@@ -1450,7 +1448,7 @@ async function apposerCachetPieceUnique(pieceIdx, courantIdx) {
 
   try {
     await sauvegarderCourrierSupabase(cible);
-    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+    sauvegarderCacheCourriersSecurise(allCourriers);
     alert("🔏 Cachet administratif et signature apposés sur la pièce !");
     ouvrirVisualisationPiece(cible.date, cible.matricule);
     } catch (err) {
@@ -1534,7 +1532,7 @@ async function transmettrePieceUnique(pieceIdx, courantIdx) {
   try {
     await sauvegarderCourrierSupabase(nouvellePieceSeule);
     allCourriers.push(nouvellePieceSeule);
-    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+    sauvegarderCacheCourriersSecurise(allCourriers);
     alert(
       "📤 Pièce transmise individuellement avec succès au niveau supérieur !",
     );
@@ -1633,7 +1631,7 @@ async function archiverPieceUnique(pieceIdx, courantIdx) {
       }
     }
 
-    localStorage.setItem("tous_courriers", JSON.stringify(allCourriers));
+    sauvegarderCacheCourriersSecurise(allCourriers);
     alert("📦 Pièce archivée individuellement avec succès dans la bibliothèque !");
     ouvrirBoiteCourriersPleinEcran();
     } catch (err) {
