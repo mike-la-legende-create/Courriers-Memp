@@ -1946,14 +1946,24 @@ async function ouvrirBoiteCourriersPleinEcran() {
     }
   }
       let allCourriers = JSON.parse(localStorage.getItem("tous_courriers")) || [];
-    try {
-      const courriersDistants = await chargerTousCourriersSupabase();
-      if (Array.isArray(courriersDistants)) {
-        allCourriers = courriersDistants;
+      if (allCourriers.length === 0) {
+        try {
+          const courriersDistants = await chargerTousCourriersSupabase();
+          if (Array.isArray(courriersDistants)) {
+            allCourriers = courriersDistants;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        chargerTousCourriersSupabase()
+          .then((courriersDistants) => {
+            if (Array.isArray(courriersDistants)) {
+              localStorage.setItem("tous_courriers", JSON.stringify(courriersDistants.slice(-50)));
+            }
+          })
+          .catch((err) => console.error(err));
       }
-    } catch (err) {
-      console.error(err);
-    }
 
   let mesInscriptions = allInscriptions
     .filter((item) => {
@@ -2156,14 +2166,18 @@ async function ouvrirBibliothequePleinEcran() {
     `${currentUser.nom} ${currentUser.prenom} (${currentUser.role.toUpperCase()})`;
 
       let allCourriers = JSON.parse(localStorage.getItem("tous_courriers")) || [];
-    try {
-      const courriersDistants = await chargerTousCourriersSupabase();
-      if (Array.isArray(courriersDistants)) {
-        allCourriers = courriersDistants;
+      if (allCourriers.length === 0) {
+        try {
+          const courriersDistants = await chargerTousCourriersSupabase();
+          if (Array.isArray(courriersDistants)) {
+            allCourriers = courriersDistants;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        chargerTousCourriersSupabase().catch((err) => console.error(err));
       }
-    } catch (err) {
-      console.error(err);
-    }
 
 
   let mesCourriersBibliotheque = allCourriers
